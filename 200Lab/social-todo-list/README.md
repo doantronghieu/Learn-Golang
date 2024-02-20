@@ -83,5 +83,14 @@ CREATE INDEX idx_item_id ON `user_like_items` (`item_id`);
 ## Golang
 
 ```bash
+go mod init social-todo-list
 go get -u github.com/gin-gonic/gin
+go get -u gorm.io/gorm
+go get -u gorm.io/driver/mysql
+go get github.com/joho/godotenv
+
 ```
+
+## Links
+
+[GORM](https://gorm.io/docs/)

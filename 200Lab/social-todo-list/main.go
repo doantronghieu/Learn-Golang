@@ -1,12 +1,18 @@
 package main
 
 import (
-	"encoding/json"
+	// "encoding/json"
+	// "log"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type TodoItem struct {
@@ -19,30 +25,36 @@ type TodoItem struct {
 }
 
 func main() {
-	now := time.Now().UTC()
-
-	item := TodoItem{
-		Id:          1,
-		Title:       "Task 1",
-		Description: "Content 1",
-		Status:      "Doing",
-		CreatedAt:   &now,
-		UpdatedAt:   &now,
+	// Load environment variables from the .env file
+	if err := godotenv.Load(); err != nil {
+		log.Fatalln("Error loading .env file")
 	}
-	// --------------------------------------------------------------------------
-	jsData, err := json.Marshal(item)
+
+	// Get the database connection string from environment variable
+	dbConnectionString := os.Getenv("DB_CONNECTION_STRING")
+	// Check if the environment variable is set
+	if dbConnectionString == "" {
+		log.Fatalln("DB_CONNECTION_STRING environment variable is not set")
+	}
+	db, err := gorm.Open(mysql.Open(dbConnectionString), &gorm.Config{})
+
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Println(string(jsData))
-	// --------------------------------------------------------------------------
-	jsString := "{\"id\":1,\"title\":\"Task 1\",\"description\":\"Content 1\",\"status\":\"Doing\",\"created_at\":\"2024-02-19T22:05:55.420951124Z\",\"updated_at\":\"2024-02-19T22:05:55.420951124Z\"}"
-	var item2 TodoItem
-	if err := json.Unmarshal([]byte(jsString), &item2); err != nil {
-		log.Fatalln(err)
-	}
-	log.Println(item2)
-	// --------------------------------------------------------------------------
+
+	fmt.Println(db)
+
+	// now := time.Now().UTC()
+
+	// item := TodoItem{
+	// 	Id:          1,
+	// 	Title:       "Task 1",
+	// 	Description: "Content 1",
+	// 	Status:      "Doing",
+	// 	CreatedAt:   &now,
+	// 	UpdatedAt:   &now,
+	// }
+
 	// Create a new Gin router with default middleware (logger and recovery).
 	r := gin.Default()
 
@@ -66,6 +78,10 @@ func main() {
 		})
 	})
 
-	// Run the application on port 8081, listen on all available network interfaces (0.0.0.0).
-	r.Run(":8081")
+	port := os.Getenv("GIN_PORT")
+	if port == "" {
+		port = "8081"
+	}
+	log.Printf("Starting the application on port %s...", port)
+	r.Run(":" + port)
 }
