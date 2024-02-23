@@ -36,6 +36,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	db = db.Debug()
+
+	log.Println("DB Connection: ", db)
+
 	// Create a new Gin router with default middleware (logger and recovery).
 	r := gin.Default()
 
@@ -67,26 +71,34 @@ func main() {
 	r.Run(":" + port)
 }
 
+// UpdateItem is a handler function for updating a TodoItem using Gin framework
 func UpdateItem(db *gorm.DB) func(*gin.Context) {
 	return func(c *gin.Context) {
-		var data model.TodoItemUpdate
-
+		// Parse the URL parameter to get the ID of the TodoItem to be updated
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			// Return a Bad Request response if there is an error in parsing the ID
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
 
-		if err := c.ShouldBind(&data); err != nil {
+		// Create a TodoItemUpdate instance to hold the update data
+		var updateData model.TodoItemUpdate
+
+		// Bind the incoming JSON data to the TodoItemUpdate struct
+		if err := c.ShouldBind(&updateData); err != nil {
+			// Return a Bad Request response if there is an error in data binding
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
 
-		if err := db.Where("id = ?", id).Updates(&data).Error; err != nil {
+		// Update the TodoItem in the database with the provided ID
+		if err := db.Where("id = ?", id).Updates(&updateData).Error; err != nil {
+			// Return a Bad Request response if there is an error in the database update
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
@@ -97,19 +109,24 @@ func UpdateItem(db *gorm.DB) func(*gin.Context) {
 	}
 }
 
+// DeleteItem is a handler function for soft deleting a TodoItem using Gin framework
 func DeleteItem(db *gorm.DB) func(*gin.Context) {
 	return func(c *gin.Context) {
+		// Parse the URL parameter to get the ID of the TodoItem to be deleted
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			// Return a Bad Request response if there is an error in parsing the ID
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
 
-		if err := db.Table(model.TodoItem{}.TableName()).Where("id = ?", id).Updates(map[string]interface{}{
-			"status": "Deleted",
-		}).Error; err != nil {
+		// Soft delete the TodoItem by updating its status to "Deleted" in the database
+		if err := db.Table(model.TodoItem{}.TableName()).Where("id = ?", id).
+			Updates(map[string]interface{}{"status": "Deleted"}).
+			Error; err != nil {
+			// Return a Bad Request response if there is an error in the database update
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
@@ -120,35 +137,49 @@ func DeleteItem(db *gorm.DB) func(*gin.Context) {
 	}
 }
 
+// ListItem is a handler function for listing TodoItems using Gin framework with pagination
 func ListItem(db *gorm.DB) func(*gin.Context) {
 	return func(c *gin.Context) {
+		// Create a common.Paging struct to hold pagination parameters
 		var paging common.Paging
 
+		// Bind the incoming JSON data to the Paging struct
 		if err := c.ShouldBind(&paging); err != nil {
+			// Return a Bad Request response if there is an error in data binding
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
 
+		// Process pagination parameters
 		paging.Process()
 
+		// Initialize a slice to hold the resulting TodoItems
 		var result []model.TodoItem
 
-		db = db.Where("status <> ?", "Deleted")
-
 		if err := db.Table(model.TodoItem{}.TableName()).
-			Count(&paging.Total).Error; err != nil {
+			// Exclude soft-deleted TodoItems by filtering on status
+			Where("status <> ?", "Deleted").
+			Select("id").
+			// Retrieve the total count of TodoItems
+			Count(&paging.Total).
+			Error; err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
 
-		if err := db.Order("id desc").
+		// Retrieve a paginated list of TodoItems ordered by ID in descending order
+		if err := db.
+			Select("*").
+			Order("id desc").
 			Offset((paging.Page - 1) * paging.Limit).
 			Limit(paging.Limit).
-			Find(&result).Error; err != nil {
+			Find(&result).
+			Error; err != nil {
+			// Return a Bad Request response if there is an error in retrieving the list
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
