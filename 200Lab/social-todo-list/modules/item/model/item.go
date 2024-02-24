@@ -7,28 +7,31 @@ import (
 	"social-todo-list/common"
 )
 
-// Define a custom error indicating that the title cannot be blank
-var (
-	ErrTitleCannotBeEmpty = errors.New("title can not be blank")
+const (
+	EntityName = "Item"
 )
 
-// Represents the model for a TodoItem entity
+var (
+	ErrTitleCannotBeEmpty = errors.New("title can not be blank")
+	ErrItemDeleted        = errors.New("item is deleted")
+)
+
 type TodoItem struct {
 	common.SQLModel
-	Title       string      `json:"title" gorm:"column:title"`
-	Description string      `json:"description" gorm:"column:description"`
-	Status      *ItemStatus `json:"status" gorm:"column:status"`
+	Title       string        `json:"title" gorm:"column:title"`
+	Description string        `json:"description" gorm:"column:description"`
+	Status      *ItemStatus   `json:"status" gorm:"column:status"`
+	Image       *common.Image `json:"image" gorm:"column:image"`
 }
 
-// TableName defines the database table name for TodoItem
 func (TodoItem) TableName() string { return "todo_items" }
 
-// Define the structure for creating a new TodoItem
 type TodoItemCreation struct {
-	Id          int         `json:"-" gorm:"column:id"`
-	Title       string      `json:"title" gorm:"column:title"`
-	Description string      `json:"description" gorm:"column:description"`
-	Status      *ItemStatus `json:"status" gorm:"column:status"`
+	Id          int           `json:"-" gorm:"column:id"`
+	Title       string        `json:"title" gorm:"column:title"`
+	Description string        `json:"description" gorm:"column:description"`
+	Status      *ItemStatus   `json:"status" gorm:"column:status"`
+	Image       *common.Image `json:"image" gorm:"column:image"`
 }
 
 func (TodoItemCreation) TableName() string { return TodoItem{}.TableName() }
@@ -43,7 +46,6 @@ func (i *TodoItemCreation) Validate() error {
 	return nil
 }
 
-// Defines the structure for updating a TodoItem
 type TodoItemUpdate struct {
 	Title       *string `json:"title" gorm:"column:title"`
 	Description *string `json:"description" gorm:"column:description"`

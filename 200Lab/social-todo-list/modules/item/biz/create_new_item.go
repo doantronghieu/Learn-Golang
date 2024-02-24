@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"social-todo-list/common"
 	"social-todo-list/modules/item/model"
 )
 
@@ -21,30 +22,25 @@ import (
 // func (t *TYPE_NAME) LOGIC_NAME(ctx context.Context,
 // 																LOGIC_DATA *LOGIC_DATA) error
 
-// Interface for storing TodoItemCreation instances
 type CreateItemStorage interface {
 	CreateItem(ctx context.Context, data *model.TodoItemCreation) error
 }
 
-// Business logic for creating a new TodoItem
 type createItemBiz struct {
 	store CreateItemStorage
 }
 
-// Constructor function for creating a new createItemBiz instance
 func NewCreateItemBiz(store CreateItemStorage) *createItemBiz {
 	return &createItemBiz{store: store}
 }
 
-// Method for creating a new TodoItem and handling business logic
 func (biz *createItemBiz) CreateNewItem(ctx context.Context, data *model.TodoItemCreation) error {
 	if err := data.Validate(); err != nil {
 		return model.ErrTitleCannotBeEmpty
 	}
 
-	// Call the storage layer to create the new TodoItem
 	if err := biz.store.CreateItem(ctx, data); err != nil {
-		return err
+		return common.ErrCannotCreateEntity(model.EntityName, err)
 	}
 
 	return nil

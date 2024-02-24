@@ -1,9 +1,9 @@
 package common
 
 type Paging struct {
-	Page  int   `json:"page" form:"page"`
-	Limit int   `json:"limit" form:"limit"`
-	Total int64 `json:"total" form:"-"`
+	Page  int   `json:"page,omitempty" form:"page,omitempty"`
+	Limit int   `json:"limit,omitempty" form:"limit,omitempty"`
+	Total int64 `json:"total,omitempty" form:"-"`
 }
 
 func (p *Paging) Process() {
@@ -11,7 +11,7 @@ func (p *Paging) Process() {
 		p.Page = 1
 	}
 
-	if p.Limit <= 1 {
+	if p.Limit < 1 {
 		p.Limit = 1
 	}
 

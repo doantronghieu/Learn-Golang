@@ -2,33 +2,32 @@ package ginitem
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	"social-todo-list/common"
 	"social-todo-list/modules/item/biz"
-	"social-todo-list/modules/item/model"
 	"social-todo-list/modules/item/storage"
 )
 
-func CreateItem(db *gorm.DB) func(*gin.Context) {
+func DeleteItem(db *gorm.DB) func(*gin.Context) {
 	return func(c *gin.Context) {
-		var data model.TodoItemCreation
-
-		if err := c.ShouldBind(&data); err != nil {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
 			c.JSON(http.StatusBadRequest, common.ErrInvalidRequest(err))
 			return
 		}
 
 		store := storage.NewSQLStore(db)
-		business := biz.NewCreateItemBiz(store)
+		business := biz.NewDeleteItemBiz(store)
 
-		if err := business.CreateNewItem(c.Request.Context(), &data); err != nil {
+		if err := business.DeleteItemById(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusBadRequest, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, common.SimpleSuccessResponse(data.Id))
+		c.JSON(http.StatusOK, common.SimpleSuccessResponse(true))
 	}
 }
