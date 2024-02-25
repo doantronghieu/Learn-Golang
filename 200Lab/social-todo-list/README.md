@@ -29,6 +29,27 @@ CREATE DATABASE `social-todo-list`
     DEFAULT CHARACTER SET = 'utf8mb4';
 ```
 
+###### users
+
+```sql
+CREATE TABLE `users` (
+    `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `email` VARCHAR(100),
+    `password` VARCHAR(100),
+    `salt` VARCHAR(100),
+    `first_name` VARCHAR(100),
+    `last_name` VARCHAR(100),
+    `phone` VARCHAR(20),
+    `role` ENUM("user", "admin", "shipper", "mod") DEFAULT "user",
+    `status` INT DEFAULT 1
+);
+
+CREATE UNIQUE INDEX email_unique_index ON `users` (`email`);
+
+```
+
 ###### todo_items
 
 ```sql
@@ -88,6 +109,8 @@ go get -u github.com/gin-gonic/gin
 go get -u gorm.io/gorm
 go get -u gorm.io/driver/mysql
 go get github.com/joho/godotenv
+go get github.com/golang-jwt/jwt
+go get -u github.com/golang-jwt/jwt/v5
 
 ```
 
