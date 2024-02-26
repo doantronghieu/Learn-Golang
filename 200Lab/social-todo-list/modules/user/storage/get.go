@@ -6,13 +6,23 @@ import (
 	"gorm.io/gorm"
 
 	"social-todo-list/common"
-	"social-todo-list/modules/item/model"
+	"social-todo-list/modules/user/model"
 )
 
-func (s *sqlStore) GetItem(ctx context.Context, cond map[string]interface{}) (*model.TodoItem, error) {
-	var data model.TodoItem
+func (s *sqlStore) FindUser(
+	ctx context.Context,
+	conditions map[string]interface{},
+	moreInfo ...string,
+) (*model.User, error) {
+	db := s.db.Table(model.User{}.TableName())
 
-	if err := s.db.Where(cond).First(&data).Error; err != nil {
+	for i := range moreInfo {
+		db = db.Preload(moreInfo[i])
+	}
+
+	var user model.User
+
+	if err := db.Where(conditions).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, common.RecordNotFound
 		}
@@ -20,5 +30,5 @@ func (s *sqlStore) GetItem(ctx context.Context, cond map[string]interface{}) (*m
 		return nil, common.ErrDB(err)
 	}
 
-	return &data, nil
+	return &user, nil
 }

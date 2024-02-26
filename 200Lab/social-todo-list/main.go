@@ -14,9 +14,12 @@ import (
 	"gorm.io/gorm"
 
 	"social-todo-list/common"
+	"social-todo-list/component/tokenprovider/jwt"
 	"social-todo-list/middleware"
 	ginitem "social-todo-list/modules/item/transport/gin"
 	"social-todo-list/modules/upload"
+	"social-todo-list/modules/user/storage"
+	ginuser "social-todo-list/modules/user/transport/gin"
 )
 
 func main() {
@@ -36,11 +39,14 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	db = db.Debug()
-
 	log.Println("DB Connection: ", db)
-
+	// --------------------------------------------------------------------------
+	systemSecret := os.Getenv("SECRET")
+	authStore := storage.NewSQLStore(db)
+	tokenProvider := jwt.NewTokenJWTProvider("jwt", systemSecret)
+	middlewareAuth := middleware.RequiredAuth(authStore, tokenProvider)
+	// --------------------------------------------------------------------------
 	// Create a new Gin router with default middleware (logger and recovery).
 	r := gin.Default()
 	r.Use(middleware.Recover())
@@ -54,7 +60,15 @@ func main() {
 	{
 		v1.PUT("/upload", upload.Upload(db))
 
-		items := v1.Group("/items")
+		v1.POST("/register", ginuser.Register(db))
+		v1.POST("/login", ginuser.Login(db, tokenProvider))
+		v1.GET(
+			"/profile",
+			middlewareAuth,
+			ginuser.Profile(),
+		)
+
+		items := v1.Group("/items", middlewareAuth)
 		{
 			items.POST("", ginitem.CreateItem(db))
 			items.GET("", ginitem.ListItem(db))

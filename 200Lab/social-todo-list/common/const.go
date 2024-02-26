@@ -2,6 +2,10 @@ package common
 
 import "log"
 
+const (
+	CurrentUser = "current_user"
+)
+
 func Recovery() {
 	if r := recover(); r != nil {
 		log.Println("Recovered:", r)
@@ -22,4 +26,14 @@ func (p TokenPayload) UserId() int {
 // returns the role from the token payload.
 func (p TokenPayload) Role() string {
 	return p.URole
+}
+
+type Requester interface {
+	GetUserId() int
+	GetUserEmail() string
+	GetUserRole() string
+}
+
+func IsAdmin(requester Requester) bool {
+	return requester.GetUserRole() == "admin" || requester.GetUserRole() == "mod"
 }

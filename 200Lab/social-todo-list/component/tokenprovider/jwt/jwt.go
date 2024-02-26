@@ -17,8 +17,8 @@ type jwtProvider struct {
 }
 
 // creates a new instance of jwtProvider with the specified prefix.
-func NewTokenJWTProvider(prefix string) *jwtProvider {
-	return &jwtProvider{prefix: prefix}
+func NewTokenJWTProvider(prefix string, secret string) *jwtProvider {
+	return &jwtProvider{prefix: prefix, secret: secret}
 }
 
 // represents custom claims structure for JWT.
