@@ -34,6 +34,10 @@ func (s *sqlStore) ListItem(
 		return nil, common.ErrDB(err)
 	}
 
+	for i := range moreKeys {
+		db = db.Preload(moreKeys[i])
+	}
+
 	if err := db.
 		Order("id desc").
 		Select("*").

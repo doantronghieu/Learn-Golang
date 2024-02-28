@@ -124,9 +124,21 @@ go get -u gorm.io/driver/mysql
 go get github.com/joho/godotenv
 go get github.com/golang-jwt/jwt
 go get -u github.com/golang-jwt/jwt/v5
-
+go get -u github.com/btcsuite/btcutil/base58
+go get github.com/200Lab-Education/go-sdk
+go get github.com/200Lab-Education/go-sdk/plugin/storage/sdkgorm/gormdialects@v1.1.3
+go get github.com/spf13/cobra
 ```
 
 ## Links
 
 [GORM](https://gorm.io/docs/)
+
+## Run
+
+```bash
+go build -o app
+./app outenv
+```
+
+EOF
