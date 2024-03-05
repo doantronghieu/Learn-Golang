@@ -7,6 +7,7 @@ type User struct {
 	Name string
 }
 
+//go:generate mockgen -source=%GOFILE -destination %GOFILE.mock.go -package=%GOPACKAGE
 type UserDataAccessor interface {
 	GetUser(ctx context.Context, id uint64) (User, error)
 	CreateUser(ctx context.Context, user User) error
@@ -14,29 +15,7 @@ type UserDataAccessor interface {
 	DeleteUser(ctx context.Context, id uint64) error
 }
 
-type mockUserDataAccessor struct {
-}
+// mockgen -source=user.go -destination user.go.mock.go -package=database
+// go mod tidy
 
-// CreateUser implements UserDataAccessor.
-func (m *mockUserDataAccessor) CreateUser(ctx context.Context, user User) error {
-	panic("unimplemented")
-}
-
-// DeleteUser implements UserDataAccessor.
-func (m *mockUserDataAccessor) DeleteUser(ctx context.Context, id uint64) error {
-	panic("unimplemented")
-}
-
-// GetUser implements UserDataAccessor.
-func (m *mockUserDataAccessor) GetUser(ctx context.Context, id uint64) (User, error) {
-	panic("unimplemented")
-}
-
-// UpdateUser implements UserDataAccessor.
-func (m *mockUserDataAccessor) UpdateUser(ctx context.Context, user User) error {
-	panic("unimplemented")
-}
-
-func NewMockUserDataAccessor() UserDataAccessor {
-	return &mockUserDataAccessor{}
-}
+// go generate user.go
